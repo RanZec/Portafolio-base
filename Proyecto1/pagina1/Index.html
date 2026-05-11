@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clima Actual</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #000000, #14532d);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
+    }
+    .weather-box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 700px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+    }
+    #contenido-clima {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .current-weather {
+      flex: 1;
+      padding-right: 20px;
+      border-right: 2px solid #ddd;
+      min-width: 250px;
+      max-width: 300px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .forecast {
+      flex: 1;
+      padding-left: 20px;
+      text-align: center;
+      min-width: 250px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #14532d;
+      text-align: center;
+    }
+    .temp {
+      font-size: 40px;
+      font-weight: bold;
+      color: #1e3a1a;
+      text-align: center;
+    }
+    .desc {
+      font-style: italic;
+      color: gray;
+      text-align: center;
+    }
+    #location {
+      margin-bottom: 10px;
+      color: #333;
+      text-align: center;
+    }
+    .forecast-day {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .forecast-day span {
+      display: block;
+      font-weight: bold;
+      color: #14532d;
+      text-align: center;
+    }
+    .button-container {
+      position: absolute;
+      top: -31.5px;
+      left: 2;
+      display: flex;
+      gap: 8px;
+    }
+    .button-container button {
+      background-color: #14532d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 0px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #btn-naranja {
+      background-color: rgb(255, 72, 0);
+      color: white;
+    }
+    #btn-blanco {
+      background-color: #ffd600;
+      color: #333;
+    }
+    /* ===== Chatbot Styles ===== */
+    .chatbot {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: -260px;
+      width: 300px;
+      height: 100vh;
+      background-color: #fff;
+      border-radius: 0;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      z-index: 999;
+      font-family: Arial, sans-serif;
+      transition: right 0.4s ease;
+    }
+    .chat-header {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      background-color: #14532d;
+      color: white;
+      padding: 10px 5px;
+      text-align: center;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      width: 40px;
+    }
+    .chat-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100vh;
+    }
+    .chat-body {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      outline: none;
+    }
+    .chat-input button {
+      background-color: #14532d;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    .user-msg, .bot-msg {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 5px;
+      max-width: 220px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      display: inline-block;
+    }
+    .user-msg {
+      background-color: #dcfce7;
+      align-self: flex-end;
+      text-align: left;
+    }
+    .bot-msg {
+      background-color: #f0f0f0;
+      align-self: flex-start;
+    }
+    #chat-hover-zone {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 40px;
+      height: 100vh;
+      z-index: 1000;
+    }
+    .footer {
+      margin-top: 15px;
+      font-size: 14px;
+      color: white;
+      text-align: center;
+    }
+  </style>
+
+      <link rel="icon" type="image/png" href="Logo Nutri sin fondo pestaña.png">
+
+</head>
+<body>
+  <img src="Abajo a la izquierda.png"
+     alt="Planta izquierda abajo"
+     style="position: fixed; left: 0; top: 76%; transform: translateY(-50%); height: 300px; z-index: 10;">
+
+  <div class="weather-box" id="weather-box">
+    <div class="button-container">
+      <button id="btn-verde">Informacion Actual</button>
+      <button id="btn-naranja">Fenomeno del niño</button>
+      <button id="btn-blanco" style="background-color: #ffd600; color: #333;">Más informacion</button>
+    </div>
+    <div id="contenido-clima">
+      <div class="current-weather">
+        <h1>Clima Actual</h1>
+        <div id="location">Ubicación aproximada: ...</div>
+        <div class="temp" id="temperature">-- °C</div>
+
+      </div>
+      <div class="forecast">
+        <h10 style="color:rgb(0, 0, 0); margin-top:-5px ; width:100%; text-align:center; display:block;">⚠️Podria afectar tu cultivo⚠️</h10>
+        <h2 style="color:rgb(0, 0, 0); margin-top:15px ; width:100%; text-align:center; display:block;">Fenómeno del Niño</h2>
+        <div class="forecast-day" style="display: flex; align-items: flex-start;">
+          <span style="color:rgb(0, 0, 0); font-weight: bold; margin-right: 5px;">
+            Concepto:
+          </span>
+          <span style="color:rgb(0, 0, 0); font-weight:normal; font-size: 14px;">
+            El Niño es un cambio en el clima que hace que el océano se caliente más de lo normal en la parte norte del Perú, causando lluvias fuertes o sequías en diferentes lugares del mundo.
+          </span>
+        </div>
+        
+      </div>
+    </div>
+    <div id="contenido-blanco" style="display:none; width:100%; min-height:200px;">
+      <div style="padding: 0;">
+        <h2 style="color:rgb(0, 0, 0); margin-top:-10px; width:100%; text-align:center;">
+          Fenómeno del Niño
+        </h2>
+        <span style="color:rgb(0, 0, 0); font-weight: bold;margin-top: -20; text-align:center;size: 14px;">
+          Concepto:
+        </span>
+        <p style="color:rgb(0, 0, 0); font-weight: normal; font-size: 12px; margin-top: 4px; text-align:center;">
+         El Fenómeno del Niño en el Perú es un evento climático anómalo que se produce por el calentamiento inusual de las aguas del océano Pacífico frente a la costa norte y centro del país. Este fenómeno altera el clima normal, provocando lluvias intensas, desbordes de ríos, huaicos e inundaciones en la costa, y a la vez puede generar sequías en la sierra y selva. También impacta negativamente en la pesca, la agricultura y la infraestructura, debido al cambio en la temperatura del mar y las condiciones atmosféricas.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; justify-items: center; margin-top: 20px;">
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región Piura</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Piura, Sullana, Paita, Sechura, Talara<br>
+              🌧️ Alta vulnerabilidad por lluvias e inundaciones.
+            </div>
+          </div>
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región Tumbes</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Tumbes, Zarumilla, Contralmirante Villar<br>
+              🌊 Afectadas por el incremento del caudal de los ríos y el desborde del río Tumbes.
+            </div>
+          </div>
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región Lambayeque</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Chiclayo, Lambayeque, Ferreñafe<br>
+              🏞️ Zonas urbanas y agrícolas muy expuestas a aniegos.
+            </div>
+          </div>
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región La Libertad</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Trujillo, Ascope, Chepén<br>
+              🏘️ Afectaciones en infraestructura y viviendas por lluvias torrenciales.
+            </div>
+          </div>
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región Áncash</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Santa (Chimbote), Casma, Huarmey<br>
+              🏔️ Riesgo de huaicos en zonas de quebrada.
+            </div>
+          </div>
+          <div style="border: 1px solid #000000; border-radius: 100000000px; padding: 12px; width: 90%; background: #f8f8f8;">
+            <span style="color:rgb(0, 0, 0); font-weight:bold; font-size: 14px;">🔴 Región Lima</span>
+            <div style="color:rgb(0, 0, 0); font-size: 10px; margin-top:10px;">
+              Provincias afectadas: Lima Metropolitana, Cañete, Huaral<br>
+              🚧 Afectaciones en ríos y quebradas, sobre todo en asentamientos humanos cercanos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <p>© 2025 Nutrivida. Todos los derechos reservados.</p>
+  </div>
+  <div id="chat-hover-zone"></div>
+  <div class="chatbot">
+    <div class="chat-header">
+      EcoChat
+    </div>
+    <div class="chat-content">
+      <div class="chat-body" id="chat-body">
+        <div class="bot-msg">Hola 👋 ¿En qué puedo ayudarte?</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Escribe un mensaje..." />
+        <button onclick="enviarMensaje()">Enviar</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const apiKey = "730eff579cdd0e3ef2860039f814294a";
+    function mostrarClima(lat, lon) {
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("location").textContent = `Ubicación: ${data.name}`;
+          document.getElementById("temperature").textContent = `${data.main.temp.toFixed(1)} °C`;
+         
+        })
+        .catch(error => {
+          document.getElementById("description").textContent = "Error al obtener datos del clima.";
+          console.error(error);
+        });
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`)
+        .then(response => response.json())
+        .then(data => {
+          const days = [1, 2, 3];
+          days.forEach((d) => {
+            const forecastData = data.list[d * 8];
+            if (forecastData) {
+              document.getElementById(`day${d}`).textContent =
+                `${forecastData.main.temp.toFixed(1)} °C | ${forecastData.weather[0].description}`;
+            }
+          });
+        })
+        .catch(error => {
+          console.error("Error en el pronóstico:", error);
+        });
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          mostrarClima(latitude, longitude);
+        },
+        error => {
+          document.getElementById("description").textContent = "No se pudo obtener tu ubicación.";
+        }
+      );
+    } else {
+      document.getElementById("description").textContent = "Geolocalización no compatible.";
+    }
+    function enviarMensaje() {
+      const input = document.getElementById("user-input");
+      const mensaje = input.value.trim();
+      if (mensaje === "") return;
+      const chatBody = document.getElementById("chat-body");
+      const userMsg = document.createElement("div");
+      userMsg.className = "user-msg";
+      userMsg.textContent = mensaje;
+      chatBody.appendChild(userMsg);
+      const botMsg = document.createElement("div");
+      botMsg.className = "bot-msg";
+      botMsg.textContent = "Estoy procesando tu mensaje...";
+      chatBody.appendChild(botMsg);
+      input.value = "";
+      chatBody.scrollTop = chatBody.scrollHeight;
+      setTimeout(() => {
+        botMsg.textContent = "Lo siento, aún estoy en desarrollo 🤖";
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }, 1000);
+    }
+    document.getElementById("user-input").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        enviarMensaje();
+      }
+    });
+    const chatbot = document.querySelector(".chatbot");
+    const hoverZone = document.getElementById("chat-hover-zone");
+    let dentroChat = false;
+    let dentroHover = false;
+    function actualizarChat() {
+      if (dentroChat || dentroHover) {
+        chatbot.style.right = "0px";
+      } else {
+        chatbot.style.right = "-260px";
+      }
+    }
+    hoverZone.addEventListener("mouseenter", () => {
+      dentroHover = true;
+      actualizarChat();
+    });
+    hoverZone.addEventListener("mouseleave", () => {
+      dentroHover = false;
+      actualizarChat();
+    });
+    chatbot.addEventListener("mouseenter", () => {
+      dentroChat = true;
+      actualizarChat();
+    });
+    chatbot.addEventListener("mouseleave", () => {
+      dentroChat = false;
+      actualizarChat();
+    });
+    // Alternar entre clima y cuadro blanco vacío sin mover el formato
+    document.getElementById("btn-naranja").onclick = function() {
+      document.getElementById("contenido-clima").style.display = "none";
+      document.getElementById("contenido-blanco").style.display = "flex";
+    };
+    document.getElementById("btn-verde").onclick = function() {
+      document.getElementById("contenido-blanco").style.display = "none";
+      document.getElementById("contenido-clima").style.display = "flex";
+    };
+    // Botón que abre una página en blanco
+document.getElementById("btn-blanco").onclick = function() {
+  window.open("https://gilded-moxie-e01f70.netlify.app/", "_blank");
+};
+
+</script>
+</body>
+</html>
+
+
+
